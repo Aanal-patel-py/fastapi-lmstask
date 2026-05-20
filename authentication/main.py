@@ -98,3 +98,9 @@ def register(user: UserCreate,db:Session=Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
+
+
+@app.get("/users", tags=["authentication"], response_model=list[UserPublic], summary="Get all users")
+def get_all_users(db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    return users

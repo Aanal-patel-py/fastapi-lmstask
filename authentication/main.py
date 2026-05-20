@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
-from database import TaskStorage, get_task_store
-from models import TaskCreate, TaskUpdate, TaskResponse
-
+from database import TaskStorage, get_task_store,get_db
+from models import TaskCreate, TaskUpdate, TaskResponse,User,UserInDB,UserUpdate
+from sqlalchemy.orm import Session
 app = FastAPI(title="Task Management API", version="1.0")
 
 @app.get("/", tags=["Home"])
@@ -74,3 +74,16 @@ def delete_task(task_id: int, store: TaskStorage = Depends(get_task_store)):
             return {"message": "Task deleted successfully"}
 
     raise HTTPException(status_code=404, detail="Task not found")
+
+
+@app.post("/register", tags=["authentication"],summary="registration")
+def register(user: UserInDB,db:Session=Depends(get_db)):
+
+    new_user={
+        "username":user.username,
+        "email": user.email,
+        "fullname":user.full_name,
+        "age":user.age,
+    }
+
+    

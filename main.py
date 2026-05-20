@@ -24,3 +24,19 @@ def create_task(task: TaskCreate, store: TaskStorage = Depends(get_task_store)):
 
     return new_task
 
+
+@app.get("/tasks", response_model=list[TaskResponse], tags=["Tasks"], summary="Get all tasks")
+def get_tasks(store: TaskStorage = Depends(get_task_store)):
+    return store.tasks
+
+
+
+@app.get("/tasks/{task_id}", response_model=TaskResponse, tags=["Tasks"], summary="Get task by ID")
+def get_single_task(task_id: int, store: TaskStorage = Depends(get_task_store)):
+    for task in store.tasks:
+        if task["id"] == task_id:
+            return task
+
+    raise HTTPException(status_code=404, detail="Task not found")
+
+

@@ -16,3 +16,21 @@ class TaskUpdate(BaseModel):
 
 class TaskResponse(TaskCreate):
     id: int
+
+
+
+class User(BaseModel):
+    username: str=Field(min_length=3,max_length=25, description="username")
+    email: str
+    full_name:str
+    age:int
+
+class UserInDB(User):
+    hashed_password: str
+
+class UserUpdate(User):
+    username: str| None=None
+    password: str| None=None
+    email: str | None=None
+    full_name:str | None=None
+    age:int| None=None

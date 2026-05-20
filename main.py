@@ -16,7 +16,8 @@ def create_task(task: TaskCreate, store: TaskStorage = Depends(get_task_store)):
         "id": store.current_id,
         "title": task.title,
         "description": task.description,
-        "due_date": task.due_date
+        "due_date": task.due_date,
+        "completed":task.completed
     }
 
     store.tasks.append(new_task)
@@ -42,13 +43,26 @@ def get_single_task(task_id: int, store: TaskStorage = Depends(get_task_store)):
 
 
 @app.put("/tasks/{task_id}", response_model=TaskResponse, tags=["Tasks"], summary="Update task")
-def update_task(task_id: int, updated_task: TaskUpdate, store: TaskStorage = Depends(get_task_store)):
+def update_task(task_id: int, updated_task: TaskCreate, store: TaskStorage = Depends(get_task_store)):
+
+    for task in store.tasks:
+        if task["id"] == task_id:
+            task["title"] = updated_task.title
+            task["due_date"] = updated_task.due_date
+            task["completed"]=updated_task.completed
+            return task
+    raise HTTPException(status_code=404, detail="Task not found")
+
+@app.patch("/tasks/{task_id}",response_model=TaskResponse,tags=["Tasks"],summary="Partially update task")
+
+def patch_task(task_id: int,updated_task: TaskUpdate,store: TaskStorage = Depends(get_task_store)):
 
     for task in store.tasks:
         if task["id"] == task_id:
             update_data = updated_task.model_dump(exclude_unset=True)
             task.update(update_data)
             return task
+
     raise HTTPException(status_code=404, detail="Task not found")
 
 @app.delete("/tasks/{task_id}", tags=["Tasks"], summary="Delete task")

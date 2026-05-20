@@ -1,8 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from database import TaskStorage, get_task_store,get_db
-from models import TaskCreate, TaskUpdate, TaskResponse,User,UserInDB,UserUpdate
+from models import TaskCreate, TaskUpdate, TaskResponse,UserCreate,UserInDB,UserUpdate,UserPublic
 from sqlalchemy.orm import Session
+from schema import User
+from auth import hash_password,verify_password
+from database import Base, engine
 app = FastAPI(title="Task Management API", version="1.0")
+Base.metadata.create_all(bind=engine)
 
 @app.get("/", tags=["Home"])
 def home():
@@ -76,14 +80,21 @@ def delete_task(task_id: int, store: TaskStorage = Depends(get_task_store)):
     raise HTTPException(status_code=404, detail="Task not found")
 
 
-@app.post("/register", tags=["authentication"],summary="registration")
-def register(user: UserInDB,db:Session=Depends(get_db)):
+@app.post("/register", tags=["authentication"],status_code=status.HTTP_201_CREATED,response_model=UserPublic,summary="registration")
+def register(user: UserCreate,db:Session=Depends(get_db)):
 
-    new_user={
-        "username":user.username,
-        "email": user.email,
-        "fullname":user.full_name,
-        "age":user.age,
-    }
-
-    
+    hashed_pwd=hash_password(user.password)
+    new_user = User(
+        username=user.username,
+        email=user.email,
+        full_name=user.full_name,
+        age=user.age,
+        hashed_password=hashed_pwd
+    )
+    print(user.password)
+    print(type(user.password))
+    print(len(user.password))
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user

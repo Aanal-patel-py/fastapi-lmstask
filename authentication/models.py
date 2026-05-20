@@ -18,19 +18,31 @@ class TaskResponse(TaskCreate):
     id: int
 
 
-
-class User(BaseModel):
-    username: str=Field(min_length=3,max_length=25, description="username")
+class UserCreate(BaseModel):
+    username: str = Field(min_length=3, max_length=25)
     email: str
-    full_name:str
-    age:int
+    full_name: str
+    age: int
+    password: str
 
-class UserInDB(User):
+
+class UserPublic(BaseModel):
+    id: int
+    username: str
+    email: str
+    full_name: str
+    age: int
+
+    model_config = {"from_attributes": True}
+
+
+class UserInDB(UserPublic):
     hashed_password: str
 
-class UserUpdate(User):
-    username: str| None=None
-    password: str| None=None
-    email: str | None=None
-    full_name:str | None=None
-    age:int| None=None
+
+class UserUpdate(BaseModel):
+    username: str | None = None
+    password: str | None = None
+    email: str | None = None
+    full_name: str | None = None
+    age: int | None = None

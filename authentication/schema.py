@@ -1,4 +1,4 @@
-from .database import Base
+from database import Base
 from sqlalchemy import Column, Integer, String, Boolean, Table, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -17,6 +17,7 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     full_name = Column(String)
     hashed_password = Column(String)
+    age = Column(Integer)
     is_active = Column(Boolean, default=True)
 
     roles = relationship("Role", secondary=user_roles, back_populates="users")

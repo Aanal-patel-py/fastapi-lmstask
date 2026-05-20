@@ -40,3 +40,14 @@ def get_single_task(task_id: int, store: TaskStorage = Depends(get_task_store)):
     raise HTTPException(status_code=404, detail="Task not found")
 
 
+
+@app.put("/tasks/{task_id}", response_model=TaskResponse, tags=["Tasks"], summary="Update task")
+def update_task(task_id: int, updated_task: TaskUpdate, store: TaskStorage = Depends(get_task_store)):
+
+    for task in store.tasks:
+        if task["id"] == task_id:
+            update_data = updated_task.model_dump(exclude_unset=True)
+            task.update(update_data)
+            return task
+    raise HTTPException(status_code=404, detail="Task not found")
+

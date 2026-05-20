@@ -51,3 +51,12 @@ def update_task(task_id: int, updated_task: TaskUpdate, store: TaskStorage = Dep
             return task
     raise HTTPException(status_code=404, detail="Task not found")
 
+@app.delete("/tasks/{task_id}", tags=["Tasks"], summary="Delete task")
+def delete_task(task_id: int, store: TaskStorage = Depends(get_task_store)):
+
+    for index, task in enumerate(store.tasks):
+        if task["id"] == task_id:
+            store.tasks.pop(index)
+            return {"message": "Task deleted successfully"}
+
+    raise HTTPException(status_code=404, detail="Task not found")

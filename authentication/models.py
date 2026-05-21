@@ -26,13 +26,23 @@ class UserCreate(BaseModel):
     password: str
 
 
+class RoleCreate(BaseModel):
+    name: str
+    description: str | None = None
+
+class RoleResponse(BaseModel):
+    id: int
+    name: str
+    description: str | None
+
+    model_config = {"from_attributes":True}
 class UserPublic(BaseModel):
     id: int
     username: str
     email: str
     full_name: str
     age: int
-
+    roles:list[RoleResponse]
     model_config = {"from_attributes": True}
 
 
@@ -46,3 +56,6 @@ class UserUpdate(BaseModel):
     email: str | None = None
     full_name: str | None = None
     age: int | None = None
+
+class ChangeRoleRequest(BaseModel):
+    role_id: int

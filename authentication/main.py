@@ -81,7 +81,7 @@ def delete_task(task_id: int, store: TaskStorage = Depends(get_task_store)):
     raise HTTPException(status_code=404, detail="Task not found")
 
 
-@app.post("/register", tags=["authentication"],status_code=status.HTTP_201_CREATED,response_model=UserPublic,summary="registration")
+@app.post("/register", tags=["users"],status_code=status.HTTP_201_CREATED,response_model=UserPublic,summary="registration")
 def register(user: UserCreate,db:Session=Depends(get_db)):
 
     hashed_pwd=hash_password(user.password)
@@ -105,13 +105,13 @@ def register(user: UserCreate,db:Session=Depends(get_db)):
     return new_user
 
 
-@app.get("/users", tags=["authentication"], response_model=list[UserPublic], summary="Get all users")
+@app.get("/users", tags=["admin"], response_model=list[UserPublic], summary="Get all users")
 def get_all_users(db: Session = Depends(get_db),admin_user: User=Depends(require_admin)):
     users = db.query(User).all()
     return users
 
 
-@app.post("/token")
+@app.post("/token",tags=["users"],summary="login")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),db: Session=Depends(get_db)):
 
     user = authenticate_user(db, form_data.username, form_data.password)
@@ -123,12 +123,25 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/users/me", tags=["profile"],response_model=UserPublic)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
+@app.get("/users/me", tags=["users"],response_model=UserPublic)
+def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
 
-@app.patch("/users/update/{user_id}",tags=["profile"], response_model=UserPublic)
-async def update_profile(user_id: int,user_update: UserUpdate,current_user: User = Depends(get_current_active_user),db: Session = Depends(get_db)):
+
+@app.patch("/users/me",response_model=UserPublic,tags=["users"],summary="Update my profile")
+def update_profile(user_update: UserUpdate,current_user: User = Depends(get_current_active_user),db: Session = Depends(get_db)):
+    update_data = user_update.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+
+    db.commit()
+    db.refresh(current_user)
+
+    return current_user
+
+@app.patch("/users/me/{user_id}",tags=["admin"], response_model=UserPublic)
+def update_profile(user_id: int,user_update: UserUpdate,current_user: User = Depends(require_admin),db: Session = Depends(get_db)):
     user = db.get(User, user_id)
 
     if not user:
@@ -144,8 +157,8 @@ async def update_profile(user_id: int,user_update: UserUpdate,current_user: User
     return user
     
 
-@app.post("/roles",tags=["roles"],response_model=RoleResponse)
-async def create_roles(role:RoleCreate, db: Session=Depends(get_db)):
+@app.post("/roles",tags=["admin"],response_model=RoleResponse)
+def create_roles(role:RoleCreate, db: Session=Depends(get_db),admin_user: User = Depends(require_admin)):
     existing_role = db.query(Role).filter(Role.name == role.name).first()
 
     if existing_role:
@@ -159,7 +172,7 @@ async def create_roles(role:RoleCreate, db: Session=Depends(get_db)):
 
     return new_role
 
-@app.patch("/users/{user_id}/role",response_model=UserPublic,tags=["roles"],summary="Change user role")
+@app.patch("/users/{user_id}/role",response_model=UserPublic,tags=["admin"],summary="Change user role")
 def change_user_role(user_id: int,role_data: ChangeRoleRequest,admin_user: User = Depends(require_admin),db: Session = Depends(get_db)):
     user = db.get(User, user_id)
 
@@ -177,3 +190,13 @@ def change_user_role(user_id: int,role_data: ChangeRoleRequest,admin_user: User 
     db.refresh(user)
 
     return user
+
+@app.delete("/users/{user_id}",status_code=status.HTTP_204_NO_CONTENT,tags=["admin"],summary="Delete user")
+def delete_user(user_id: int,admin_user: User = Depends(require_admin),db: Session = Depends(get_db)):
+    user = db.get(User, user_id)
+
+    if not user:
+        raise HTTPException(status_code=404,detail="User not found")
+
+    db.delete(user)
+    db.commit()

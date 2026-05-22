@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field,EmailStr
 from datetime import date
 from typing import Optional
 
@@ -20,10 +20,10 @@ class TaskResponse(TaskCreate):
 
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=25)
-    email: str
+    email: EmailStr
     full_name: str
-    age: int
-    password: str
+    age: int=Field(gt=0)
+    password: str=Field(min_length=6)
 
 
 class RoleCreate(BaseModel):
@@ -39,7 +39,7 @@ class RoleResponse(BaseModel):
 class UserPublic(BaseModel):
     id: int
     username: str
-    email: str
+    email: EmailStr
     full_name: str
     age: int
     roles:list[RoleResponse]
@@ -53,9 +53,9 @@ class UserInDB(UserPublic):
 class UserUpdate(BaseModel):
     username: str | None = None
     password: str | None = None
-    email: str | None = None
+    email: EmailStr | None = None
     full_name: str | None = None
-    age: int | None = None
+    age: int | None = None  
 
 class ChangeRoleRequest(BaseModel):
     role_id: int

@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException, status
-from database import TaskStorage, get_task_store,get_db
-from models import TaskCreate, TaskUpdate, TaskResponse,UserCreate,UserInDB,UserUpdate,UserPublic,RoleCreate,RoleResponse,ChangeRoleRequest
+from authentication.database import TaskStorage, get_task_store,get_db
+from authentication.models import TaskCreate, TaskUpdate, TaskResponse,UserCreate,UserInDB,UserUpdate,UserPublic,RoleCreate,RoleResponse,ChangeRoleRequest
 from sqlalchemy.orm import Session
-from schema import User,Role
-from auth import hash_password,verify_password,authenticate_user,create_access_token,ACCESS_TOKEN_EXPIRE_MINUTES,get_current_active_user,get_current_user,require_admin
+from authentication.schema import User,Role
+from authentication.auth import hash_password,verify_password,authenticate_user,create_access_token,ACCESS_TOKEN_EXPIRE_MINUTES,get_current_active_user,get_current_user,require_admin
 from datetime import datetime, timedelta, timezone
-from database import Base, engine
+from authentication.database import Base, engine
 from fastapi.security import OAuth2PasswordRequestForm
 
 app = FastAPI(title="Task Management API", version="1.0")

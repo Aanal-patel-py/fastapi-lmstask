@@ -3,10 +3,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
-from models import UserInDB
+from authentication.models import UserInDB
 from typing import Optional
-from schema import User
-from database import get_db
+from authentication.schema import User
+from authentication.database import get_db
 from sqlalchemy.orm import Session
 
 
